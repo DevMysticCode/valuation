@@ -7,7 +7,7 @@ export const config = {
   },
 }
 
-const GROQ_API = 'https://api.groq.com/openai/v1/chat/completions'
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 
 function buildPrompt(form, features) {
   const featureList = features && features.length ? features.join(', ') : 'None specified'
@@ -28,7 +28,7 @@ PROPERTY DETAILS:
 - Features: ${featureList}
 - Seller's Description: ${form.description || 'None provided'}
 
-${form.photoCount > 0 ? `${form.photoCount} property photo(s) have been uploaded and analysed visually.` : 'No photos uploaded — rely on the property details above.'}
+${form.photoCount > 0 ? `${form.photoCount} property photo(s) have been uploaded — analyse them visually to assess condition, presentation, kerb appeal, and any features that affect value.` : 'No photos uploaded — rely on the property details above.'}
 
 IMPORTANT INSTRUCTIONS:
 1. Generate realistic UK property prices appropriate for the ${form.postcode || 'given'} postcode
@@ -100,9 +100,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured. Please add GROQ_API_KEY to your environment variables.' })
+    return res.status(500).json({ error: 'API key not configured. Please add GEMINI_API_KEY to your environment variables.' })
   }
 
   const { form, features, photos } = req.body
@@ -111,23 +111,38 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required property details.' })
   }
 
-  // Groq text-only: note photo count in the prompt but don't send raw image data
-  // (Groq's llama models do not accept base64 inline images)
-  form.photoCount = Array.isArray(photos) ? Math.min(photos.length, 4) : 0
+  // Build Gemini parts array — images first, then the text prompt
+  const parts = []
 
-  const content = [{ type: 'text', text: buildPrompt(form, features) }]
+  if (Array.isArray(photos) && photos.length > 0) {
+    const photosToSend = photos.slice(0, 4)
+    for (const photo of photosToSend) {
+      if (photo.data && photo.mediaType) {
+        parts.push({
+          inlineData: {
+            mimeType: photo.mediaType,
+            data: photo.data,
+          },
+        })
+      }
+    }
+    form.photoCount = photosToSend.length
+  } else {
+    form.photoCount = 0
+  }
+
+  parts.push({ text: buildPrompt(form, features) })
 
   try {
-    const response = await fetch(GROQ_API, {
+    const response = await fetch(`${GEMINI_API}?key=${apiKey}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-        max_tokens: 2500,
-        messages: [{ role: 'user', content }],
+        contents: [{ parts }],
+        generationConfig: {
+          maxOutputTokens: 2500,
+          temperature: 0.4,
+        },
       }),
     })
 
@@ -138,7 +153,7 @@ export default async function handler(req, res) {
       return res.status(response.status || 500).json({ error: msg })
     }
 
-    const text = data.choices?.[0]?.message?.content || ''
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
     const parsed = parseValuation(text)
 
     if (!parsed) {
