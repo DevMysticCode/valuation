@@ -143,6 +143,10 @@ export default async function handler(req, res) {
           maxOutputTokens: 2500,
           temperature: 0.4,
         },
+        // Disable thinking mode so response is clean JSON only
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
       }),
     })
 
@@ -153,10 +157,16 @@ export default async function handler(req, res) {
       return res.status(response.status || 500).json({ error: msg })
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    // Collect text from all parts (2.5-flash may return multiple parts)
+    const allParts = data.candidates?.[0]?.content?.parts || []
+    const text = allParts.map(p => p.text || '').join('')
+
+    console.log('Gemini raw response:', text.slice(0, 300))
+
     const parsed = parseValuation(text)
 
     if (!parsed) {
+      console.error('Failed to parse:', text.slice(0, 500))
       return res.status(500).json({ error: 'Could not parse the valuation response. Please try again.' })
     }
 
