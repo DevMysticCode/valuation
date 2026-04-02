@@ -140,8 +140,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         contents: [{ parts }],
         generationConfig: {
-          maxOutputTokens: 2500,
+          maxOutputTokens: 8192,
           temperature: 0.4,
+          responseMimeType: 'application/json',
         },
       }),
     })
