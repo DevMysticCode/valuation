@@ -572,6 +572,22 @@ body {
   color: var(--slate-500);
 }
 
+.photo-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--bg-light);
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--slate-500);
+  line-height: 1.55;
+}
+
+.photo-note-icon { flex-shrink: 0; font-size: 13px; }
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

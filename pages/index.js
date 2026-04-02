@@ -654,6 +654,11 @@ export default function ValuationPage() {
                   </div>
                 )}
 
+                <div className="photo-note">
+                  <span className="photo-note-icon">ℹ️</span>
+                  Photos are used for this valuation only and are not saved. If you proceed to list your property, you'll be asked to upload them again.
+                </div>
+
                 {photos.length > 0 && (
                   <div className="photo-grid">
                     {photos.map((src, i) => (
