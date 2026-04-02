@@ -7,7 +7,7 @@ export const config = {
   },
 }
 
-const GEMINI_API = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent'
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent'
 
 function buildPrompt(form, features) {
   const featureList = features && features.length ? features.join(', ') : 'None specified'
