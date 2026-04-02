@@ -111,29 +111,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required property details.' })
   }
 
-  // Build the message content array (OpenAI format)
-  const content = []
+  // Groq text-only: note photo count in the prompt but don't send raw image data
+  // (Groq's llama models do not accept base64 inline images)
+  form.photoCount = Array.isArray(photos) ? Math.min(photos.length, 4) : 0
 
-  // Attach up to 4 photos as base64 image_url blocks
-  if (Array.isArray(photos) && photos.length > 0) {
-    const photosToSend = photos.slice(0, 4)
-    for (const photo of photosToSend) {
-      if (photo.data && photo.mediaType) {
-        content.push({
-          type: 'image_url',
-          image_url: {
-            url: `data:${photo.mediaType};base64,${photo.data}`,
-            detail: 'high',
-          },
-        })
-      }
-    }
-    form.photoCount = photosToSend.length
-  } else {
-    form.photoCount = 0
-  }
-
-  content.push({ type: 'text', text: buildPrompt(form, features) })
+  const content = [{ type: 'text', text: buildPrompt(form, features) }]
 
   try {
     const response = await fetch(GROQ_API, {

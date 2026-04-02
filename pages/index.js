@@ -769,7 +769,7 @@ function Results({ valuation, form, onReset }) {
   const s = v.strategies || {}
   const a = v.analysis || {}
   const r = v.priceRange || {}
-  const comps = v.comparables || []
+  // const comps = v.comparables || []  — reserved for Land Registry integration
 
   const strategies = [
     { key: 'fastSale', label: 'Fast Sale', icon: '⚡' },
@@ -877,7 +877,7 @@ function Results({ valuation, form, onReset }) {
         </div>
       )}
 
-      {/* Comparables */}
+      {/* Comparables — hidden until Land Registry data integration
       {comps.length > 0 && (
         <div className="analysis-card">
           <div className="analysis-title">🏘 Comparable Sales</div>
@@ -901,6 +901,7 @@ function Results({ valuation, form, onReset }) {
           </div>
         </div>
       )}
+      */}
 
       {/* Agent's Note */}
       {v.agentNote && (
