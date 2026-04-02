@@ -143,10 +143,6 @@ export default async function handler(req, res) {
           maxOutputTokens: 2500,
           temperature: 0.4,
         },
-        // Disable thinking mode so response is clean JSON only
-        thinkingConfig: {
-          thinkingBudget: 0,
-        },
       }),
     })
 
