@@ -468,7 +468,7 @@ export default function ValuationPage() {
           ? await Promise.all(photoFiles.slice(0, 4).map(fileToBase64))
           : []
 
-      const res = await fetch('/api/valuation', {
+      const res = await fetch('/api/property-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form, features, photos: photoData }),
