@@ -306,90 +306,7 @@ function Footer() {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-// ── Login Screen ──────────────────────────────────────────────────────────────
-
-function LoginScreen({ onSuccess }) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-
-    if (res.ok) {
-      sessionStorage.setItem('ah_authed', '1')
-      onSuccess()
-    } else {
-      setError('Incorrect access code. Please try again.')
-    }
-    setLoading(false)
-  }
-
-  return (
-    <>
-      <Head>
-        <title>Access Required — Alexandria Hamilton</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <div className="login-page">
-        <div className="login-blob-1" aria-hidden="true" />
-        <div className="login-blob-2" aria-hidden="true" />
-
-        <div className="login-card">
-          <a href="https://www.alexandriahamilton.co.uk" className="login-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/logo.webp" alt="Alexandria Hamilton" className="login-logo-img" />
-            <span className="login-logo-text">Alexandria Hamilton</span>
-          </a>
-
-          <h1 className="login-title">Property Valuation</h1>
-          <p className="login-sub">Enter your access code to continue.</p>
-
-          <form onSubmit={handleSubmit} className="login-form">
-            <div className="field">
-              <label>Access Code</label>
-              <input
-                type="password"
-                placeholder="Enter access code…"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                autoFocus
-                required
-              />
-            </div>
-
-            {error && <p className="login-error">{error}</p>}
-
-            <button className="submit-btn" type="submit" disabled={loading || !password}>
-              {loading ? 'Checking…' : 'Continue →'}
-            </button>
-          </form>
-
-          <p className="login-footer-note">
-            Don't have an access code?{' '}
-            <a href="https://www.alexandriahamilton.co.uk/contact">Contact us</a>
-          </p>
-        </div>
-      </div>
-    </>
-  )
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
 export default function ValuationPage() {
-  const [authed, setAuthed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return sessionStorage.getItem('ah_authed') === '1'
-  })
   const [step, setStep] = useState('form')
   const [loadingStep, setLoadingStep] = useState(0)
   const [photos, setPhotos] = useState([])
@@ -468,7 +385,7 @@ export default function ValuationPage() {
           ? await Promise.all(photoFiles.slice(0, 4).map(fileToBase64))
           : []
 
-      const res = await fetch('/api/property-assessment', {
+      const res = await fetch('/api/valuation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ form, features, photos: photoData }),
@@ -503,8 +420,6 @@ export default function ValuationPage() {
     form.address && form.postcode && form.propertyType && form.bedrooms
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
-  if (!authed) return <LoginScreen onSuccess={() => setAuthed(true)} />
 
   return (
     <>
